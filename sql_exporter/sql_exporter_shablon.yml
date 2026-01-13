@@ -1,0 +1,106 @@
+global:
+  scrape_timeout_offset: 500ms
+  max_connections: 3
+  max_idle_connections: 3
+  max_connection_lifetime: 10m
+
+target:
+  data_source_name: "sqlserver://login:password@127.0.0.1:1433?database=ApplianceDb_v1&encrypt=true&TrustServerCertificate=true"
+  collectors: [jobs_stuck]
+
+collectors:
+  - collector_name: jobs_stuck
+    metrics:
+      
+      - metric_name: jobs_stuck_total
+        type: gauge
+        help: "Number of jobs older than 60 second today without job_docs or models_numbers_not_found"
+        values: [stuck_count]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS stuck_count
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= CAST(GETDATE() AS date)
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date))
+            AND DATEDIFF(MINUTE, j.created_at, GETDATE()) > 1
+            AND NOT EXISTS (
+                SELECT 1 
+                FROM [dbo].[job_docs] jd 
+                WHERE jd.job_id = j.id
+            )
+            AND NOT EXISTS (
+                SELECT 1 
+                FROM [dbo].[models_numbers_not_found] mnf 
+                WHERE mnf.job_id = j.id
+            );
+
+      - metric_name: jobs_total_today
+        type: gauge
+        help: "Total number of jobs created today"
+        values: [cnt_today]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS cnt_today
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= CAST(GETDATE() AS date)
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date));
+
+      - metric_name: jobs_total_7d
+        type: gauge
+        help: "Total number of jobs created in the last 7 days"
+        values: [cnt_7d]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS cnt_7d
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= DATEADD(DAY, -7, CAST(GETDATE() AS date))
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date));
+
+      - metric_name: jobs_total_30d
+        type: gauge
+        help: "Total number of jobs created in the last 30 days"
+        values: [cnt_30d]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS cnt_30d
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= DATEADD(DAY, -30, CAST(GETDATE() AS date))
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date));
+
+      - metric_name: jobs_with_job_docs_today
+        type: gauge
+        help: "Number of today's jobs that have at least one job_docs record"
+        values: [cnt_job_docs_today]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS cnt_job_docs_today
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= CAST(GETDATE() AS date)
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date))
+            AND EXISTS (
+                SELECT 1 
+                FROM [dbo].[job_docs] jd 
+                WHERE jd.job_id = j.id
+            );
+
+      - metric_name: jobs_with_models_not_found_today
+        type: gauge
+        help: "Number of today's jobs that have at least one models_numbers_not_found record"
+        values: [cnt_models_not_found_today]
+        query: |
+          SELECT 
+              CAST(COUNT(*) AS FLOAT) AS cnt_models_not_found_today
+          FROM [dbo].[jobs] j
+          WHERE j.created_at IS NOT NULL
+            AND j.created_at >= CAST(GETDATE() AS date)
+            AND j.created_at < DATEADD(DAY, 1, CAST(GETDATE() AS date))
+            AND EXISTS (
+                SELECT 1 
+                FROM [dbo].[models_numbers_not_found] mnf 
+                WHERE mnf.job_id = j.id
+            );

@@ -1,0 +1,16 @@
+collector_name: jobs_stuck
+
+metrics:
+  - metric_name: jobs_stuck_total
+    type: gauge
+    help: "Number of jobs older than 60 seconds without job_docs or models_numbers_not_found"
+    values: [stuck_count]
+    query: |
+      SELECT 
+          CAST(COUNT(*) AS FLOAT) AS stuck_count
+      FROM [dbo].[jobs] j
+      WHERE j.created_at IS NOT NULL
+        AND DATEDIFF(SECOND, j.created_at, GETDATE()) > 60
+        AND NOT EXISTS (SELECT 1 FROM [dbo].[job_docs] jd WHERE jd.job_id = j.id)
+        AND NOT EXISTS (SELECT 1 FROM [dbo].[models_numbers_not_found] mnf WHERE mnf.job_id = j.id)
+        AND j.created_at >= DATEADD(MINUTE, -10, GETDATE());

@@ -1,0 +1,20 @@
+﻿groups:
+  - name: windows_alerts
+    rules:
+      - alert: WindowsMemoryLow
+        expr: 100 - (100 * windows_memory_physical_free_bytes / windows_memory_physical_total_bytes) > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Низкий уровень RAM на {{ $labels.instance }}"
+          description: "Используется >90% RAM (свободно <10%)"
+
+      - alert: WindowsDiskCLow
+        expr: windows_logical_disk_free_bytes{volume="C:"} < 5*1024*1024*1024
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Мало места на диске C: на {{ $labels.instance }}"
+          description: "Свободно <5 ГБ на диске C:"

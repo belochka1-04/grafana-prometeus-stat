@@ -1,0 +1,305 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: AlertGroup
+      folder: PrometheusAlert
+      interval: 30m
+      rules:
+        - uid: ef6hlmp38d24gd
+          title: WindowsMemoryLow
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: ff6h720j9z37kc
+              model:
+                editorMode: code
+                expr: 100 - (100 * windows_memory_physical_free_bytes / windows_memory_physical_total_bytes)
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 90
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 8h
+          isPaused: false
+          notification_settings:
+            receiver: telegram-alerts
+        - uid: ff6hlypp6aha8a
+          title: WindowsDiskCLow
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: ff6h720j9z37kc
+              model:
+                editorMode: code
+                expr: windows_logical_disk_free_bytes{volume="C:"}
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 5.36870912e+09
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 8h
+          isPaused: false
+          notification_settings:
+            receiver: telegram-alerts
+    - orgId: 1
+      name: MsSqlAllert
+      folder: PrometheusAlert
+      interval: 5m
+      rules:
+        - uid: cf6k92cmczpj4d
+          title: MSSQL упал
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: ff6h720j9z37kc
+              model:
+                editorMode: code
+                expr: windows_service_state{name="SQLPBENGINE",state="running"}
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 1
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            summary: MSSQL процесс упал
+          isPaused: false
+          notification_settings:
+            receiver: telegram-alerts
+        - uid: cf7hxsfedcyrke
+          title: MS SQL не отзывается на запрос
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: ef7hwz87h5gjkf
+              model:
+                dataset: ApplianceDb_v1
+                datasource:
+                    type: mssql
+                    uid: ef7hwz87h5gjkf
+                editorMode: code
+                format: table
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: "SELECT GETDATE() AS time, COUNT(1) AS value\r\nFROM [ApplianceDb_v1].[dbo].[Base_Masks];"
+                refId: A
+                sql:
+                    columns:
+                        - parameters: []
+                          type: function
+                    groupBy:
+                        - property:
+                            type: string
+                          type: groupBy
+                    limit: 50
+            - refId: reducer
+              queryType: expression
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                reducer: last
+                refId: reducer
+                type: reduce
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0.5
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: reducer
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            description: Проверка работоспособности бд по запросу
+            summary: Бд не работает
+          isPaused: false
+          notification_settings:
+            receiver: telegram-alerts
+        - uid: ff8afmcx79y4gf
+          title: Have job without responce
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: ff6h720j9z37kc
+              model:
+                editorMode: code
+                expr: jobs_stuck_total
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 1h
+          annotations:
+            summary: Есть работы, которые не смогли получить ответ вовремя
+          isPaused: false
+          notification_settings:
+            receiver: telegram-alerts
