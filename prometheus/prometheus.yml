@@ -17,5 +17,116 @@ scrape_configs:
           instance: 'server-sql'
           group: 'sql'
 
+  - job_name: 'SampleStocks_Module'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:9106']   # 
+        labels:
+          instance: 'SampleStocksModule'
+          group: 'moduls'
+
+  - job_name: 'PartsGrabber_Module'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:9103']   # 
+        labels:
+          instance: 'PartsGrabberModule'
+          group: 'moduls'
+
+  - job_name: 'StocksChecker_Module'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:9104']   # 
+        labels:
+          instance: 'StocksCheckerModule'
+          group: 'moduls'
+
+  - job_name: 'Auth_Service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:7049']   # 
+        labels:
+          instance: 'AuthService'
+          group: 'microservices'
+
+  - job_name: 'GoogleModelRequests_Service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:7057']   # 
+        labels:
+          instance: 'GoogleModelRequests'
+          group: 'microservices'
+
+
+  - job_name: 'Model_Catalog_Service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:7056']   # 
+        labels:
+          instance: 'ModelCatalogService'
+          group: 'microservices'
+
+
+  - job_name: 'Job_Service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:7055']   # 
+        labels:
+          instance: 'JobService'
+          group: 'microservices'
+
+  - job_name: 'webapi_user_service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:7050']   # 
+        labels:
+          instance: 'user-service'
+          group: 'microservices'
+
+  - job_name: 'webapi_service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['95.216.25.39:6050']   # 
+        labels:
+          instance: 'mainWebApi-service'
+          group: 'webservices'
+
+
+  - job_name: 'TestApplianceStickMainBot'
+    metrics_path: /metrics         
+    scheme: http                    
+    static_configs:
+      - targets: ['138.201.32.60:8001']
+        labels:
+          instance: 'TestApplianceStickMainBot'
+          group: 'prod'
+
+  - job_name: 'aipartfinder_bot'
+    metrics_path: /metrics         
+    scheme: http                    
+    static_configs:
+      - targets: ['138.201.32.60:8002']
+        labels:
+          instance: 'aipartfinder_bot'
+          group: 'prod'
+
+  - job_name: 'GoogleModelUpdte'
+    metrics_path: /metrics         
+    scheme: http                    
+    static_configs:
+      - targets: ['95.216.25.39:9091']
+        labels:
+          instance: 'GoogleModelUpdte'
+          group: 'prod'
+
+  - job_name: 'TriggerStockUpdater'
+    metrics_path: /metrics         
+    scheme: http                    
+    static_configs:
+      - targets: ['95.216.25.39:9101']
+        labels:
+          instance: 'TriggerStockUpdater'
+          group: 'prod'
+
 rule_files:
   - "rules.yml"
